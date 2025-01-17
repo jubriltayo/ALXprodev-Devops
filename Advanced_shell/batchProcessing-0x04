@@ -41,7 +41,17 @@ for POKEMON in "${POKEMON_LIST[@]}"; do
     sleep "$DELAY"
 done
 
+# List running background jobs
+echo "Active background jobs:"
+jobs
+
 # Wait for all background processes to finish
 wait
+
+# Check for any running background jobs and terminate them if necessary
+if [[ $(jobs -r | wc -l) -gt 0 ]]; then
+  echo "Terminating remaining background jobs..."
+  kill $(jobs -p)
+fi
 
 echo "Data retrieval complete"
