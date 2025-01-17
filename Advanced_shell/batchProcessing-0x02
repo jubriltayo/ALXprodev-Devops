@@ -3,7 +3,7 @@
 # This script retrieves data for multiple Pokemon automatically and stores it in separate files 
 
 
-POKEMON_LIST=("Bulbasaur" "Ivysaur" "Venusaur" "Charmander" "Charmeleon")
+POKEMON_LIST=("bulbasaur" "ivysaur" "venusaur" "charmander" "charmeleon")
 
 API_URL="https://pokeapi.co/api/v2/pokemon/"
 
@@ -11,9 +11,6 @@ API_URL="https://pokeapi.co/api/v2/pokemon/"
 DELAY=2
 
 for POKEMON in "${POKEMON_LIST[@]}"; do # [@] to include each element in the list
-    # convert pokemon name to lowercase for consistency
-    LOWERCASE_NAME=$(echo "$POKEMON" | awk '{print tolower($0)}')
-
     FILE_NAME="${LOWERCASE_NAME}.json"
 
     echo "Fetching data for $POKEMON..."
