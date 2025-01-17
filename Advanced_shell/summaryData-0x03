@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# Report that summaizes the data for multiple pokemon
+
+
+# Initialize the output CSV file (column name / header)
+echo "Name,Height,Weight" > pokemon_report.csv
+
+for file in *.json; do
+    # skip data.json
+    if [ "$file" == "data.json" ]; then
+        continue
+    fi
+
+    # Extract name, height and weight using jq
+    name=$(jq -r '.name' "$file")
+    height=$(jq -r '.height' "$file")
+    weight=$(jq -r '.weight' "$file")
+
+    # Append the extracted data (values) to the csv
+    echo "$name,$height,$weight" >> pokemon_report.csv
+done
+
+# Use awk to calculate the average height and weight
+# NR > 1 - skips the header, starts from second line
+awk -F, '
+BEGIN {
+    height_sum = 0;
+    weight_sum = 0;
+    count = 0;
+}
+NR > 1 {
+    height_sum += $2;
+    weight_sum += $3;
+    count++;
+}
+END {
+    if (count > 0) {
+        avg_height = height_sum / count;
+        avg_weight = weight_sum / count;
+        print "Average Height: " avg_height;
+        print "Average Weight: " avg_weight;
+    }
+}
+' pokemon_report.csv

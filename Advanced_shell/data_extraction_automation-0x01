@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Define the input file containing the API response
+INPUT_FILE="data.json"
+
+# Check if the input file exists
+if [ ! -f "$INPUT_FILE" ]; then
+    echo "Error: $INPUT_FILE not found. Please ensure the API response file exists."
+    exit 1
+fi
+
+# Extract the name 'Pokemon' from the 'curled' json data using jq
+NAME=$(jq -r '.name' "$INPUT_FILE") # jq -r: extract raw string without quotes
+
+# Extract height and convert decimeter to meters using awk 
+# From Pokemon API documentation - height is in decimeter
+HEIGHT=$(jq -r '.height' "$INPUT_FILE" | awk '{print $1 / 10}')
+
+# Extract weight and convert hectogram to kilogram using awk
+# From Pokemon API documentation - weight is in hectograms
+WEIGHT=$(jq -r '.weight' "$INPUT_FILE" | awk '{print $1 / 10}')
+
+# Extract type using jq and sed to format the array
+TYPE=$(jq -r '.types[].type.name' "$INPUT_FILE" | sed -z 's/\n/, /g;s/, $//')
+
+# Format the output message
+MESSAGE="$NAME is of type $TYPE, weighs ${WEIGHT}kg, and is ${HEIGHT}m tall"
+
+# Display the output message
+echo "$MESSAGE"
