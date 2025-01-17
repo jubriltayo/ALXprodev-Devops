@@ -13,7 +13,7 @@ for file in *.json; do
     fi
 
     # Extract name, height and weight using jq
-    name=$(jq -r '.name' "$file")
+    name=$(jq -r '.name' "$file" | sed 's/^./\U&/') # extract and capitalize
     height=$(jq -r '.height' "$file")
     weight=$(jq -r '.weight' "$file")
 
