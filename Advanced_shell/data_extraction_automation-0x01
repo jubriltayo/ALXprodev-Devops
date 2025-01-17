@@ -34,7 +34,7 @@ TYPE=$(jq -r '.types[].type.name' "$INPUT_FILE" |
        sed 's/, $//')  # Remove trailing comma
 
 # Format the output message
-MESSAGE="$NAME is of type $(capitalize "$TYPE"), weighs ${WEIGHT}kg, and is ${HEIGHT}m tall"
+MESSAGE="$NAME is of type $(capitalize "$TYPE"), weighs ${WEIGHT}kg, and is ${HEIGHT}m tall."
 
 # Display the output message
 echo "$MESSAGE"
