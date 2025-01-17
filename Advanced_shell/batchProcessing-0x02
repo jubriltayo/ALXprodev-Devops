@@ -9,23 +9,42 @@ API_URL="https://pokeapi.co/api/v2/pokemon/"
 
 # Delay in seconds to avoid rate-limiting
 DELAY=2
+MAX_RETRIES=3
+
+# Function to attempt a curl with retry logic
+fetch_data() {
+    local pokemon=$1
+    local retries=0
+    local response
+
+    while [[ $retries -lt $MAX_RETRIES ]]; do
+        echo "Attempting to fetch data for $pokemon (Attempt $((retries + 1))/$MAX_RETRIES)..."
+
+        response=$(curl -s -w "%{http_code}" -o temp.json "${API_URL}${pokemon}")
+        http_code=$(tail -n 1 temp.json) # extract HTTP status code from the response
+
+        if [[ "$http_code" -eq 200 ]]; then
+            mv temp.json "${pokemon}.json"
+            echo "Data for $pokemon saved to ${pokemon}.json."
+            return 0
+        else
+            echo "Failed to retrieve data for $pokemon. HTTP status code: $http_code"
+            ((retries++))
+            if [[ $retries -lt $MAX_RETRIES ]]; then
+                echo "Retrying in $DELAY seconds..."
+                sleep "$DELAY"
+            else
+                echo "Exceeded maximum retries for $pokemon. Skipping..."
+                rm temp.json
+                echo "$pokemon: Failed after $MAX_RETRIES attempts." >> error_log.txt
+                return 1
+            fi
+        fi
+    done
+}
 
 for POKEMON in "${POKEMON_LIST[@]}"; do # [@] to include each element in the list
-    FILE_NAME="${LOWERCASE_NAME}.json"
-
-    echo "Fetching data for $POKEMON..."
-
-    # Fetch data from the API using curl and save it to the corresponding file
-    RESPONSE=$(curl -s "${API_URL}${LOWERCASE_NAME}")
-
-    # Check if the request was successful
-    # check if last command was successful (0) and response not empty
-    if [[ $? -eq 0 && -n "$RESPONSE" ]]; then 
-        echo "$RESPONSE" > "$FILE_NAME"
-        echo "Data for $POKEMON saved to $FILE_NAME."
-    else
-        echo "Failed to retrive data for $POKEMON. Check your network or API status."
-    fi
+    fetch_data "$POKEMON"
 
     # wait to avoid hitting rate limits
     echo "Waiting for $DELAY seconds..."
