@@ -21,7 +21,10 @@ HEIGHT=$(jq -r '.height' "$INPUT_FILE" | awk '{print $1 / 10}')
 WEIGHT=$(jq -r '.weight' "$INPUT_FILE" | awk '{print $1 / 10}')
 
 # Extract type using jq and sed to format the array
-TYPE=$(jq -r '.types[].type.name' "$INPUT_FILE" | sed -z 's/\n/, /g;s/, $//')
+TYPE=$(jq -r '.types[].type.name' "$INPUT_FILE" | 
+       awk '{print toupper(substr($0,1,1)) tolower(substr($0,2))}' |  # Capitalize first letter
+       sed ':a;N;$!ba;s/\n/, /g' |  # Join types with a comma and space
+       sed 's/, $//')  # Remove trailing comma
 
 # Format the output message
 MESSAGE="$NAME is of type $TYPE, weighs ${WEIGHT}kg, and is ${HEIGHT}m tall"
