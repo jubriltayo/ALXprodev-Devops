@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# This script speeds up data retrieval using parallel processing to retrieve data for multiple Pokemon automatically and stores it in separate files 
+
+
+POKEMON_LIST=("bulbasaur" "ivysaur" "venusaur" "charmander" "charmeleon")
+
+API_URL="https://pokeapi.co/api/v2/pokemon/"
+
+# Delay in seconds to avoid rate-limiting
+DELAY=2
+MAX_RETRIES=3
+
+fetch_pokemon_data() {
+    local POKEMON=$1
+    local FILE_NAME="${POKEMON}.json"
+    local RETRIES=0
+
+    echo "Fetching data for $POKEMON..."
+
+    while [[ $RETRIES -lt $MAX_RETRIES ]]; do
+
+        RESPONSE=$(curl -s "${API_URL}${POKEMON}")
+
+        if [[ $? -eq 0 && -n "$RESPONSE" ]]; then
+            echo "$RESPONSE" > "$FILE_NAME"
+            echo "Data for $POKEMON saved to $FILE_NAME."
+            return
+        fi
+        RETRIES=$((RETRIES + 1))
+        echo "Retrying $POKEMON... Attempt $RETRIES of $MAX_RETRIES."
+        sleep "$DELAY"
+    done
+
+    echo "Failed to retrieve data for $POKEMON. Check your network or API status."
+}
+
+# Loop through each pokemon and fetch data in parallel
+for POKEMON in "${POKEMON_LIST[@]}"; do
+    fetch_pokemon_data "$POKEMON" & # run in the background
+    sleep "$DELAY"
+done
+
+# Wait for all background processes to finish
+wait
+
+echo "Data retrieval complete"
